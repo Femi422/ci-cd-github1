@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -16,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
@@ -55,11 +56,17 @@ jobs:
             fi
 
             # Install dependencies
-            npm install --only=production
+            npm install --omit=dev
 
-            # Stop existing app
-            pm2 stop ci-cd-github || true
+            # Stop existing app (gracefully handle if not running)
+            pm2 stop ci-cd-github 2>/dev/null || echo "App not running, starting fresh"
+            pm2 delete ci-cd-github 2>/dev/null || echo "No existing app to delete"
 
             # Start app
             pm2 start app.js --name ci-cd-github
             pm2 save
+
+            # Verify app is running
+            pm2 status
+            sleep 5
+            curl -f http://localhost:3000/health || echo "Health check warning"
