@@ -58,8 +58,8 @@ jobs:
             npm install --only=production
 
             # Stop existing app
-            pm2 stop cicd-lab-app || true
+            pm2 stop ci-cd-github || true
 
             # Start app
-            pm2 start app.js --name cicd-lab-app
+            pm2 start app.js --name ci-cd-github
             pm2 save
